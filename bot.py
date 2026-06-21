@@ -18,6 +18,7 @@ AI_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 AI_MODEL = config["ai_model"].strip()
 
 user_memory = {}
+user_mode = {} 
 
 def load_channels():
     try:
@@ -33,14 +34,18 @@ def save_channels(channels_list):
 allowed_channels = load_channels()
 
 CONAN_PROMPT = (
-    "Bạn là Conan Edogawa. Hãy nói chuyện bằng tiếng Việt cực kỳ dễ thương, hồn nhiên như trẻ con. "
+    "Bạn là Conan Edogawa. Bạn là một BÁCH KHOA TOÀN THƯ sống về series Thám tử lừng danh Conan. "
+    "Bạn nắm rõ 100% mọi vụ án, thủ thuật giết người, hung thủ, động cơ, đồ vật, tổ chức áo đen và các mối quan hệ trong anime/manga, kể cả movie phim Detective Conan (Thám Tử Lừng Danh Conan). "
+    "Hãy nói chuyện bằng tiếng Việt cực kỳ dễ thương, hồn nhiên như trẻ con. "
     "Dùng các từ 'Ủa, á lệ lệ?', 'Ơ kìa lạ quá'. Xưng 'cháu' hoặc 'Conan'. "
     "BẮT BUỘC: Hãy sử dụng thật nhiều emoji dễ thương, vui nhộn và liên quan đến thám tử (như 🕵️‍♂️, 🔍, ⚽, 😅, ✨) trong mỗi câu trả lời."
 )
 
 SHINICHI_PROMPT = (
-    "Bạn là Kudo Shinichi. Vứt bỏ lớp bọc trẻ con. Nói chuyện cực kỳ lạnh lùng, sắc bén, đanh thép, thông minh. "
-    "Xưng 'tôi' hoặc 'tớ'. Ngắn gọn, tập trung phá án."
+    "Bạn là Kudo Shinichi. Bạn là một BÁCH KHOA TOÀN THƯ sống về series Thám tử lừng danh Conan. "
+    "Bạn nắm rõ 100% mọi vụ án, thủ thuật giết người, hung thủ, động cơ, tổ chức áo đen và mọi diễn biến cốt truyện, kể cả movie phim Detective Conan (Thám Tử Lừng Danh Conan). "
+    "Vứt bỏ lớp bọc trẻ con. Nói chuyện cực kỳ lạnh lùng, sắc bén, đanh thép, thông minh. "
+    "Xưng 'tôi' hoặc 'tớ'. Trả lời ngắn gọn, đánh trúng trọng tâm, phân tích logic như một thám tử trung học thực thụ."
 )
 
 intents = discord.Intents.default()
@@ -49,16 +54,28 @@ bot = commands.Bot(command_prefix=config["prefix"], intents=intents, help_comman
 
 @bot.event
 async def on_ready():
-    print(f"🤖 Thám tử {bot.user.name} đã sẵn sàng phá án!")
+    print(f"🐧 Thám tử {bot.user.name} đã sẵn sàng phá án!")
 
 @bot.command(name="help")
 async def help_cmd(ctx):
     embed = discord.Embed(title="🕵️ Lệnh Hệ Thống Của Thám Tử Bot", color=discord.Color.blue())
+    embed.add_field(name="`!shinichi`", value="Đổi sang nhân cách Shinichi sắc bén.", inline=False)
+    embed.add_field(name="`!conan`", value="Đổi về nhân cách bé Conan dễ thương.", inline=False)
     embed.add_field(name="`!setchannel`", value="Bật bot chat tự do trong kênh này (không cần tag).", inline=False)
     embed.add_field(name="`!stop`", value="Tắt bot chat tự do trong kênh này.", inline=False)
     embed.add_field(name="`!xoa`", value="Xóa trí nhớ, khởi động lại câu chuyện từ đầu.", inline=False)
-    embed.add_field(name="`!ve [nội dung]`", value="Vẽ ảnh theo yêu cầu (vd: `!ve con mèo mặc áo thám tử`).", inline=False)
+    embed.add_field(name="`!ve [nội dung]`", value="Vẽ ảnh theo yêu cầu (vd: `!ve hung thủ áo đen`).", inline=False)
     await ctx.send(embed=embed)
+
+@bot.command(name="shinichi")
+async def mode_shinichi(ctx):
+    user_mode[ctx.author.id] = "shinichi"
+    await ctx.send("🕵️‍♂️ **[Kudo Shinichi]** Cậu gọi tớ à? Có vụ án nào phức tạp cần giải quyết sao?")
+
+@bot.command(name="conan")
+async def mode_conan(ctx):
+    user_mode[ctx.author.id] = "conan"
+    await ctx.send("👓 **[Conan Edogawa]** Á lệ lệ? Cháu là Conan đây ạ! Bác cần cháu giúp gì không? ⚽✨")
 
 @bot.command(name="setchannel")
 async def setchannel(ctx):
@@ -90,9 +107,9 @@ async def xoa(ctx):
 @bot.command(name="ve")
 async def ve(ctx, *, prompt: str = None):
     if not prompt:
-        return await ctx.send("⚠️ Bác phải nhập nội dung cần vẽ chứ! (VD: `!ve thám tử conan anime`)")
+        return await ctx.send("⚠️ Bác phải nhập nội dung cần vẽ chứ! (VD: `!ve tổ chức áo đen`)")
     
-    await ctx.send("🎨 *(Conan đang lấy giấy bút ra vẽ... Đợi cháu xíu nha!)*")
+    await ctx.send("🎨 *(Đang lấy giấy bút ra vẽ... Đợi xíu nha!)*")
     
     safe_prompt = urllib.parse.quote(prompt)
     image_url = f"https://image.pollinations.ai/prompt/{safe_prompt}?width=1024&height=1024&nologo=true"
@@ -120,8 +137,8 @@ async def on_message(message):
         user_msg = message.content.replace(f'<@{bot.user.id}>', '').strip()
         user_id = message.author.id
 
-        is_shinichi = any(trigger in user_msg.lower() for trigger in config["shinichi_triggers"])
-        selected_prompt = SHINICHI_PROMPT if is_shinichi else CONAN_PROMPT
+        current_mode = user_mode.get(user_id, "conan")
+        selected_prompt = SHINICHI_PROMPT if current_mode == "shinichi" else CONAN_PROMPT
 
         if user_id not in user_memory:
             user_memory[user_id] = []
@@ -143,7 +160,7 @@ async def on_message(message):
         payload = {
             "model": AI_MODEL,
             "messages": messages_payload,
-            "temperature": 0.3 if is_shinichi else 0.7
+            "temperature": 0.3 if current_mode == "shinichi" else 0.7
         }
 
         try:
@@ -159,6 +176,6 @@ async def on_message(message):
                     else:
                         await message.reply(f"⚠️ OpenRouter báo lỗi `{response.status}`: {response_text[:150]}")
         except Exception as e:
-            await message.reply(f"*(Conan gãi đầu)* Rada bị nhiễu sóng rồi bác ơi! Lỗi code: `{str(e)}`")
+            await message.reply(f"*(Rada bị nhiễu sóng)* Lỗi kết nối: `{str(e)}`")
 
 bot.run(DISCORD_TOKEN)
