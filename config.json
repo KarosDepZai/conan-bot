@@ -1,0 +1,9 @@
+{
+  "prefix": "!",
+  "ai_model": "nex-agi/nex-n2-pro:free",
+  "shinichi_triggers": [
+    "áo đen", "black organization", "aptx 4869", "gin", "vodka", 
+    "vermouth", "shinichi", "tổ chức", "thuốc teo nhỏ", "bo"
+    "agasa", "heiji"
+  ]
+}
